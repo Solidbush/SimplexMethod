@@ -10,7 +10,7 @@ lhs_eq = []
 rhs_eq = []
 bnd = []
 
-with open('input.json') as f:
+with open('input1.json') as f:
     file_content = f.read()
     templates_global = json.loads(file_content)
 
@@ -37,7 +37,9 @@ def parse_json(templates):
         elif sample['type'] == 'eq':
             lhs_eq.append(sample['coefs'])
             rhs_eq.append(sample['b'])
+    for items in obj:
         bnd.append((0, float("inf")))
+
     print("Входные данные: ")
     print(f"Коэффициенты целевой функции: {repr(obj)}")
     print(f"Направление оптимизации: {goal}")
@@ -49,12 +51,17 @@ def parse_json(templates):
 
 
 parse_json(templates_global)
-
-opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq,
-              b_ub=rhs_ineq, A_ub=lhs_ineq, bounds=bnd, method='highs')
+if len(lhs_ineq) > 0:
+    opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq, b_ub=rhs_ineq, A_ub=lhs_ineq, bounds=bnd, method='highs')
+else:
+    opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq, bounds=bnd, method='highs')
 
 print("")
 print(f"Сообщение с результатом решения: {opt.message}")
-print(f"Оптимальное значение целевой функции: {-opt.fun}")
+print(f"Колличество итераций для решения: {opt.nit}")
+if goal == 'max':
+    print(f"Оптимальное значение целевой функции: {-opt.fun}")
+else:
+    print(f"Оптимальное значение целевой функции: {opt.fun}")
 print(f"Статус решения: {opt.status}")
 print(f"Оптимальные значения переменных решения: {repr(opt.x)}")
