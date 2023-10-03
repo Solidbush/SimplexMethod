@@ -15,7 +15,15 @@ with open('input1.json') as f:
     templates_global = json.loads(file_content)
 
 
+def process_iteration(iter_data):
+    print(f"Сообщение с результатом решения: {iter_data.message}")
+    print(f"Колличество итераций для решения: {iter_data.nit}")
+    print(f"Статус решения: {iter_data.status}")
+    print(f"Значения переменных решения: {repr(iter_data.x)}")
+
+
 def parse_json(templates):
+    global goal
     goal = templates["goal"]
     if goal == 'max':
         for item in templates["f"]:
@@ -45,16 +53,16 @@ def parse_json(templates):
     print(f"Направление оптимизации: {goal}")
     print(f"Коэффициенты из ограничений-неравенств (левая часть): {repr(lhs_ineq)}")
     print(f"Коэффициенты из ограничений-неравенств (правая часть): {repr(rhs_ineq)}")
-    print(f"Коэффициенты из ограничивающего уравнения (правая часть): {repr(lhs_eq)}")
-    print(f"Коэффициенты из ограничивающего уравнения (левая часть):{repr(rhs_eq)}")
+    print(f"Коэффициенты из ограничивающего уравнения (левая часть): {repr(lhs_eq)}")
+    print(f"Коэффициенты из ограничивающего уравнения (правая часть):{repr(rhs_eq)}")
     print(f"Границ каждой переменной: {repr(bnd)}")
 
 
 parse_json(templates_global)
 if len(lhs_ineq) > 0:
-    opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq, b_ub=rhs_ineq, A_ub=lhs_ineq, bounds=bnd, method='highs')
+    opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq, b_ub=rhs_ineq, A_ub=lhs_ineq, bounds=bnd, method='simplex', callback=process_iteration)
 else:
-    opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq, bounds=bnd, method='highs')
+    opt = linprog(c=obj, A_eq=lhs_eq, b_eq=rhs_eq, bounds=bnd, method='simplex', callback=process_iteration)
 
 print("")
 print(f"Сообщение с результатом решения: {opt.message}")
